@@ -8,12 +8,9 @@ pipeline {
 
     stages {
 
-        stage('Clean & Get Packages') {
+        stage('Install Dependencies') {
             steps {
-                sh '''
-                    flutter clean
-                    flutter pub get
-                '''
+                bat 'flutter pub get'
             }
         }
 
