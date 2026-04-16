@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "157995430216",
+    "project_id": "unitconverter-aa682",
+    "storage_bucket": "unitconverter-aa682.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:157995430216:android:ae80799fe07afcb1f8c37d",
+        "android_client_info": {
+          "package_name": "mobitechwireless.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUB4qAtTlCUm8faAOshTtpZcc5txRfFTs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
