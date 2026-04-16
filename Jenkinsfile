@@ -19,12 +19,11 @@ pipeline {
     stages {
 
         stage('Clean Workspace') {
-            steps {
-                echo "Cleaning old builds..."
-                cleanWs()
-                bat 'flutter clean'
-            }
+        steps {
+            cleanWs()
         }
+    }
+
 
         stage('Install Dependencies') {
             steps {
