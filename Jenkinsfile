@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'windows-agent'
+    }
 
     environment {
         FLUTTER_HOME = "C:\\flutter"
