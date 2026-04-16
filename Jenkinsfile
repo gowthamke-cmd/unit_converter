@@ -18,11 +18,19 @@ pipeline {
 
     stages {
 
-        stage('Clean Workspace') {
-        steps {
-            cleanWs()
-        }
+        stage('Clean Build Artifacts') {
+    steps {
+        echo "Cleaning only build artifacts..."
+
+        bat '''
+        if exist build rd /s /q build
+        if exist build_apk rd /s /q build_apk
+        if exist build_aab rd /s /q build_aab
+        if exist build_web rd /s /q build_web
+        if exist build_windows rd /s /q build_windows
+        '''
     }
+}
 
 
         stage('Install Dependencies') {
