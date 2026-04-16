@@ -5,9 +5,9 @@ pipeline {
 
     parameters {
         booleanParam(name: 'BUILD_APK', defaultValue: true, description: 'Build Android APK')
-        booleanParam(name: 'BUILD_AAB', defaultValue: false, description: 'Build Android AAB')
+        booleanParam(name: 'BUILD_AAB', defaultValue: true, description: 'Build Android AAB')
         booleanParam(name: 'BUILD_WEB', defaultValue: true, description: 'Build Web')
-        booleanParam(name: 'BUILD_WINDOWS', defaultValue: false, description: 'Build Windows App')
+        booleanParam(name: 'BUILD_WINDOWS', defaultValue: true, description: 'Build Windows App')
     }
 
     environment {
