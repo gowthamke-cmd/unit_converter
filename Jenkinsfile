@@ -37,7 +37,7 @@ pipeline {
                 stage('AAB') {
                     when { expression { params.BUILD_AAB } }
                     steps {
-                        bat 'flutter build aab --release'
+                        bat 'flutter build aab --release --no-shrink'
                     }
                 }
 
