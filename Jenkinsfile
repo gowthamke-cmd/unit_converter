@@ -18,7 +18,7 @@ pipeline {
 
     stages {
 
-        // ✅ Clean only artifacts (safe)
+        // ✅ Clean only build artifacts (safe)
         stage('Clean Build Artifacts') {
             steps {
                 echo "Cleaning build artifacts..."
@@ -33,6 +33,7 @@ pipeline {
             }
         }
 
+        // ✅ Install dependencies
         stage('Install Dependencies') {
             steps {
                 bat 'flutter pub get'
@@ -40,56 +41,62 @@ pipeline {
             }
         }
 
-        // ✅ Parallel but safe
+        // ✅ Parallel builds (correct declarative syntax)
         stage('Parallel Build') {
-            parallel failFast: false,
+            failFast false
+            parallel {
 
-            APK: {
-                if (params.BUILD_APK) {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        bat '''
-                        set BUILD_DIR=build_apk
-                        flutter build apk --release --build-dir=%BUILD_DIR%
-                        '''
+                stage('APK') {
+                    when { expression { params.BUILD_APK } }
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            bat '''
+                            set BUILD_DIR=build_apk
+                            flutter build apk --release --build-dir=%BUILD_DIR%
+                            '''
+                        }
                     }
                 }
-            },
 
-            AAB: {
-                if (params.BUILD_AAB) {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        bat '''
-                        set BUILD_DIR=build_aab
-                        flutter build aab --release --no-shrink --no-tree-shake-icons --build-dir=%BUILD_DIR%
-                        '''
+                stage('AAB') {
+                    when { expression { params.BUILD_AAB } }
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            bat '''
+                            set BUILD_DIR=build_aab
+                            flutter build aab --release --no-shrink --no-tree-shake-icons --build-dir=%BUILD_DIR%
+                            '''
+                        }
                     }
                 }
-            },
 
-            WEB: {
-                if (params.BUILD_WEB) {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        bat '''
-                        set BUILD_DIR=build_web
-                        flutter build web --release --build-dir=%BUILD_DIR%
-                        '''
+                stage('WEB') {
+                    when { expression { params.BUILD_WEB } }
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            bat '''
+                            set BUILD_DIR=build_web
+                            flutter build web --release --build-dir=%BUILD_DIR%
+                            '''
+                        }
                     }
                 }
-            },
 
-            WINDOWS: {
-                if (params.BUILD_WINDOWS) {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        bat '''
-                        set BUILD_DIR=build_windows
-                        flutter build windows --release --build-dir=%BUILD_DIR%
-                        '''
+                stage('WINDOWS') {
+                    when { expression { params.BUILD_WINDOWS } }
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            bat '''
+                            set BUILD_DIR=build_windows
+                            flutter build windows --release --build-dir=%BUILD_DIR%
+                            '''
+                        }
                     }
                 }
             }
         }
 
-        // ✅ Archive from separate dirs
+        // ✅ Archive artifacts safely
         stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: '''
