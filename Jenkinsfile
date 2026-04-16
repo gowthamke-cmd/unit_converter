@@ -12,7 +12,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat 'flutter pub get'
+                sh 'flutter pub get'
             }
         }
 
@@ -24,9 +24,8 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: '''
-                    build/app/outputs/flutter-apk/*.apk,
-                ''', fingerprint: true
+                archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/*.apk',
+                fingerprint: true
             }
         }
     }
