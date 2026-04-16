@@ -50,7 +50,7 @@ pipeline {
                             checkout scm
 
                             bat 'flutter pub get'
-                            bat 'flutter build aab --release --no-shrink --no-tree-shake-icons'
+                            bat 'flutter build aab --release --no-shrink --no-tree-shake-icons --split-debug-info=debug-info'
                         }
                     }
                 }
