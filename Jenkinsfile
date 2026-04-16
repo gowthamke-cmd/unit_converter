@@ -30,7 +30,20 @@ pipeline {
                 if exist build rd /s /q build
                 '''
             }
-        }}
+        }
+        stage('Clean Workspace') {
+            steps {
+                echo "Cleaning old builds..."
+
+                cleanWs()   // Jenkins clean
+
+                bat 'flutter clean'
+
+                bat '''
+                if exist build rd /s /q build
+                '''
+            }
+        }
 
     stages {
 
