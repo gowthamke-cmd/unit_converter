@@ -18,68 +18,85 @@ pipeline {
 
     stages {
 
+        // ✅ Clean only artifacts (safe)
         stage('Clean Build Artifacts') {
-    steps {
-        echo "Cleaning only build artifacts..."
+            steps {
+                echo "Cleaning build artifacts..."
 
-        bat '''
-        if exist build rd /s /q build
-        if exist build_apk rd /s /q build_apk
-        if exist build_aab rd /s /q build_aab
-        if exist build_web rd /s /q build_web
-        if exist build_windows rd /s /q build_windows
-        '''
-    }
-}
-
+                bat '''
+                if exist build rd /s /q build
+                if exist build_apk rd /s /q build_apk
+                if exist build_aab rd /s /q build_aab
+                if exist build_web rd /s /q build_web
+                if exist build_windows rd /s /q build_windows
+                '''
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
                 bat 'flutter pub get'
+                bat 'flutter precache'
             }
         }
 
+        // ✅ Parallel but safe
         stage('Parallel Build') {
-            parallel {
+            parallel failFast: false,
 
-                stage('APK') {
-                    when { expression { params.BUILD_APK } }
-                    steps {
-                        bat 'flutter build apk --release'
+            APK: {
+                if (params.BUILD_APK) {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        bat '''
+                        set BUILD_DIR=build_apk
+                        flutter build apk --release --build-dir=%BUILD_DIR%
+                        '''
                     }
                 }
+            },
 
-                stage('AAB') {
-                    when { expression { params.BUILD_AAB } }
-                    steps {
-                        bat 'flutter build aab --release --no-shrink'
+            AAB: {
+                if (params.BUILD_AAB) {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        bat '''
+                        set BUILD_DIR=build_aab
+                        flutter build aab --release --no-shrink --no-tree-shake-icons --build-dir=%BUILD_DIR%
+                        '''
                     }
                 }
+            },
 
-                stage('WEB') {
-                    when { expression { params.BUILD_WEB } }
-                    steps {
-                        bat 'flutter build web --release'
+            WEB: {
+                if (params.BUILD_WEB) {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        bat '''
+                        set BUILD_DIR=build_web
+                        flutter build web --release --build-dir=%BUILD_DIR%
+                        '''
                     }
                 }
+            },
 
-                stage('WINDOWS') {
-                    when { expression { params.BUILD_WINDOWS } }
-                    steps {
-                        bat 'flutter build windows --release'
+            WINDOWS: {
+                if (params.BUILD_WINDOWS) {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        bat '''
+                        set BUILD_DIR=build_windows
+                        flutter build windows --release --build-dir=%BUILD_DIR%
+                        '''
                     }
                 }
-
             }
         }
 
+        // ✅ Archive from separate dirs
         stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: '''
-                    build/app/outputs/flutter-apk/*.apk,
-                    build/app/outputs/bundle/release/*.aab,
-                    build/web/**,
-                    build/windows/**
+                    build_apk/**,
+                    build_aab/**,
+                    build_web/**,
+                    build_windows/**
                 ''', fingerprint: true
             }
         }
