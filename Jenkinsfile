@@ -30,7 +30,7 @@ pipeline {
                 if exist build rd /s /q build
                 '''
             }
-        }
+        }}
 
     stages {
 
