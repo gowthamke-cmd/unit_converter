@@ -18,22 +18,6 @@ pipeline {
 
     stages {
 
-        // ✅ Clean only build artifacts (safe)
-        stage('Clean Build Artifacts') {
-            steps {
-                echo "Cleaning build artifacts..."
-
-                bat '''
-                if exist build rd /s /q build
-                if exist build_apk rd /s /q build_apk
-                if exist build_aab rd /s /q build_aab
-                if exist build_web rd /s /q build_web
-                if exist build_windows rd /s /q build_windows
-                '''
-            }
-        }
-
-        // ✅ Install dependencies
         stage('Install Dependencies') {
             steps {
                 bat 'flutter pub get'
@@ -41,7 +25,6 @@ pipeline {
             }
         }
 
-        // ✅ Parallel builds (correct declarative syntax)
         stage('Parallel Build') {
             failFast false
             parallel {
@@ -49,11 +32,12 @@ pipeline {
                 stage('APK') {
                     when { expression { params.BUILD_APK } }
                     steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            bat '''
-                            set BUILD_DIR=build_apk
-                            flutter build apk --release --build-dir=%BUILD_DIR%
-                            '''
+                        dir('apk_build') {
+                            deleteDir()
+                            checkout scm
+
+                            bat 'flutter pub get'
+                            bat 'flutter build apk --release'
                         }
                     }
                 }
@@ -61,11 +45,12 @@ pipeline {
                 stage('AAB') {
                     when { expression { params.BUILD_AAB } }
                     steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            bat '''
-                            set BUILD_DIR=build_aab
-                            flutter build aab --release --no-shrink --no-tree-shake-icons --build-dir=%BUILD_DIR%
-                            '''
+                        dir('aab_build') {
+                            deleteDir()
+                            checkout scm
+
+                            bat 'flutter pub get'
+                            bat 'flutter build aab --release --no-shrink --no-tree-shake-icons'
                         }
                     }
                 }
@@ -73,11 +58,12 @@ pipeline {
                 stage('WEB') {
                     when { expression { params.BUILD_WEB } }
                     steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            bat '''
-                            set BUILD_DIR=build_web
-                            flutter build web --release --build-dir=%BUILD_DIR%
-                            '''
+                        dir('web_build') {
+                            deleteDir()
+                            checkout scm
+
+                            bat 'flutter pub get'
+                            bat 'flutter build web --release'
                         }
                     }
                 }
@@ -85,25 +71,25 @@ pipeline {
                 stage('WINDOWS') {
                     when { expression { params.BUILD_WINDOWS } }
                     steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            bat '''
-                            set BUILD_DIR=build_windows
-                            flutter build windows --release --build-dir=%BUILD_DIR%
-                            '''
+                        dir('windows_build') {
+                            deleteDir()
+                            checkout scm
+
+                            bat 'flutter pub get'
+                            bat 'flutter build windows --release'
                         }
                     }
                 }
             }
         }
 
-        // ✅ Archive artifacts safely
         stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: '''
-                    build_apk/**,
-                    build_aab/**,
-                    build_web/**,
-                    build_windows/**
+                    apk_build/build/app/outputs/flutter-apk/*.apk,
+                    aab_build/build/app/outputs/bundle/release/*.aab,
+                    web_build/build/web/**,
+                    windows_build/build/windows/**
                 ''', fingerprint: true
             }
         }
