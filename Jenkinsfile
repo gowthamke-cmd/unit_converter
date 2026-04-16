@@ -18,78 +18,68 @@ pipeline {
 
     stages {
 
+        stage('Clean Build Artifacts') {
+    steps {
+        echo "Cleaning only build artifacts..."
+
+        bat '''
+        if exist build rd /s /q build
+        if exist build_apk rd /s /q build_apk
+        if exist build_aab rd /s /q build_aab
+        if exist build_web rd /s /q build_web
+        if exist build_windows rd /s /q build_windows
+        '''
+    }
+}
+
+
         stage('Install Dependencies') {
             steps {
                 bat 'flutter pub get'
-                bat 'flutter precache'
             }
         }
 
         stage('Parallel Build') {
-            failFast false
             parallel {
 
                 stage('APK') {
                     when { expression { params.BUILD_APK } }
                     steps {
-                        dir('apk_build') {
-                            deleteDir()
-                            checkout scm
-
-                            bat 'flutter pub get'
-                            bat 'flutter build apk --release'
-                        }
+                        bat 'flutter build apk --release'
                     }
                 }
 
-                stage('AAB') {
-                    when { expression { params.BUILD_AAB } }
-                    steps {
-                        dir('aab_build') {
-                            deleteDir()
-                            checkout scm
-
-                            bat 'flutter pub get'
-                            bat 'flutter build aab --release --no-shrink --no-tree-shake-icons --split-debug-info=debug-info'
-                        }
-                    }
-                }
+                // stage('AAB') {
+                //     when { expression { params.BUILD_AAB } }
+                //     steps {
+                //         bat 'flutter build aab --release --no-shrink'
+                //     }
+                // }
 
                 stage('WEB') {
                     when { expression { params.BUILD_WEB } }
                     steps {
-                        dir('web_build') {
-                            deleteDir()
-                            checkout scm
-
-                            bat 'flutter pub get'
-                            bat 'flutter build web --release'
-                        }
+                        bat 'flutter build web --release'
                     }
                 }
 
                 stage('WINDOWS') {
                     when { expression { params.BUILD_WINDOWS } }
                     steps {
-                        dir('windows_build') {
-                            deleteDir()
-                            checkout scm
-
-                            bat 'flutter pub get'
-                            bat 'flutter build windows --release'
-                        }
+                        bat 'flutter build windows --release'
                     }
                 }
+
             }
         }
 
         stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: '''
-                    apk_build/build/app/outputs/flutter-apk/*.apk,
-                    aab_build/build/app/outputs/bundle/release/*.aab,
-                    web_build/build/web/**,
-                    windows_build/build/windows/**
+                    build/app/outputs/flutter-apk/*.apk,
+                    build/app/outputs/bundle/release/*.aab,
+                    build/web/**,
+                    build/windows/**
                 ''', fingerprint: true
             }
         }
